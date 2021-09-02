@@ -68,6 +68,16 @@ Any callbacks added to promise2 get **queued** behind the promise after success 
 
 ### Async, Await
 
+##### Why asynochronous
+
+If you run a program which depend on another program to run at first, if the second program is not loading properly, you will never be able to use the first program, which is bad and slow. This is because Javascript is **singled-threaded** which means **everything is blocked** until an operation completes
+
+##### What is thread 
+
+A thread is basically a process that a program can use to complete tasks. Each thread can only do a single task at once. `Task A --> Task B --> Task C `
+
+Javascript use `workers` to run expensive processes off the main thread so that user interaction is no longer blocked.
+
 ##### Async
 
 An async function is a function that knows what to expect after `await` keyword being used to invoke asynochronous code.
@@ -133,5 +143,4 @@ Difference
 
 - No more `then()` blocks
 
-##### How does it work
-
+##### 
