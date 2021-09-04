@@ -36,6 +36,65 @@ Every program runs in virtual memory, OS provide an illusion you are accessing t
 
 ### 14. Memory API
 
+##### Stack memory
+
+The complier implicitly allocate and deallocate memory, it is somtimes called **automatic** memory
+
+```c
+void func() {
+  int x; // declares an integer on the stack
+}
+```
+
+The compiler will make sure the space is allocated to this function when you call it, when you return, it will **deallocate** 
+
+##### Heap memory
+
+All allocation and deallocation of memory are explicilty handled by user. E.g.
+
+```c
+void func() {
+  int *x = (int x) malloc(sizeof(int));
+}
+```
+
+##### free() Call
+
+```c
+int *x = malloc(10 * sizeof(int));
+
+free(x);
+```
+
+Tracked by the memory-allocation library itself. Now, many newer languages support **automatic memory management** like **Garbage collector** in Java
+
+##### Concepts
+
+Segmentation Fault: Illegal memory access
+
+Buffer overflow: Not allocating enough memory
+
+Uninitialized read: read memory which has not be written in
+
+Memory leak: forget to free memory
+
+Dangling pointer: free the memory before you finish running the program
+
+Double free: free memory too often, memory-allocation libraray will be confused and do weired stuff
+
+Two level of memory management:
+
+1. OS allocates memory to a process, and release memory when kill the process, which means you don't have to free the memory, the OS will reclaim automatically. (Short-live programs)
+2. For a web server, it will never stop, so it is important to free memory and collect grabage periodically, otherwise memory leakage will be harmful (Long-live program)
+
+Invalid free: pass in wrong arguments and should be avoided
+
+### Address Translation
+
+
+
+
+
 
 
 
