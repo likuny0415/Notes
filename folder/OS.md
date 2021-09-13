@@ -1,6 +1,6 @@
-# Virtualization
+# OS
 
-
+## Virtualization
 
 ### 13. Address Space
 
@@ -89,19 +89,120 @@ Two level of memory management:
 
 Invalid free: pass in wrong arguments and should be avoided
 
-### Address Translation
+### 15. Address Translation
+
+Mechanism: **Limited direct execution(LDE)** which is we want programs run directly on hardware, but we also want control. So **efficiency & control** are two goals for OS.
+
+**Efficiency**: Make use of hardware support
+
+**Control**: No program is allowed to access memory by its own
+
+**Flexibility**: Programs are able to use their memory spaces in whatever they want
+
+**General Approach**: By **hardware-based address translation**, hardware redirect each memory access of program, by chaning the virtual memory address to the real physical address. However, the hardware can't do it alone, with **OS** , it can **manage memory**, keep track of which locations are free and which are in use and achieve **control**.
+
+##### Dynamic Relocation
+
+**Why** called dynamic relocation: Hardware takes a virtual address the process thinks it is referencing and transforms it into a physical address which is actually the data resides. the address translation happens at **runtime**, and we can move the address space even after the process has started running, so it is called dynamic relocation.
+
+**Base and bounds**: Use two registers, one is base and one is bound(also called **limit** register), the bounds registers ensures that such address are within the **confine** of the address space, it make sure the generated virtual address is neither negative nor over the limit and enable **protection**. `Physical address = virtual address + base` 
+
+![virtual-address](/Users/kuny/Downloads/notes/cuts/OS/basebound.png)
+
+##### Hardware support
+
+CPU runs in **Privileged mode**(kernel mode): Has access to **entire machine**. Application runs in **user mode**
+
+The hardware must provide the **base and bounds registers**, in CPU it has **memory management unit (MMU)**
+
+Which data structure to use to track free memory? The simplest is **free list** (not used anymore)
+
+![hareware](/Users/kuny/Downloads/notes/cuts/OS/hareware.png)
+
+##### Operating System Issues
+
+1. The **free list** shoud keep track of which memory are not in use
+2. When the process is terminated, ths OS should put it back on the free list
+3. The OS should **save and restore** base-and-bounds for **context switch**. The **process structure** or **process control block** (PCB) is used to do such thing. So when the OS resumes a running process, it must set the base-and-bounds on CPU to the correct value
+4. OS must provide exception handlers, it will kill the process which tries to access memory outside its bounds
+
+How does the whole process works?
+
+When the process stopped, the OS move the process from current address space to another location in memory. Then, the OS deshedules the process, and OS copies the process' address space from current location to the new location. Finally, the CPU updates the saved register(PCB) to point to the new location. When the process is resumed, its base register is restored, and start running again. The instructions and data are completely in a new spot in memory.
+
+##### Summary
+
+**Internal fragmentation**: the memory is wasted between head & stack & process
+
+### 16. Segmentation
+
+##### Problem tries to fix
+
+The space between stack and heap is not used by the process.  The simple approach of base-and-bounds is wasteful, and it also makes it quite hard to run a program when the entire address space doesn't fit into memory. How to use separate memory space?
+
+##### Segmentation
+
+OS can place heap, stack and code into different places and avoid filling physical memory with unused virtual address space. If not use Segmentation, there will be huge waste of address space, because these three segments are allocated by one base-and-bounds. And they will be allocated with more memory than they need to use. By Segmentation, only used memory is allocated space, thus we have large amount of sparse address spaces
+
+![Placing Segments In Physical Memory](/Users/kuny/Downloads/notes/cuts/OS/segmentation1.png)
+
+
+
+**Segmentation fault**: Violation arises from a memory access on a segmented machine to an illegal address
+
+Below can't understand
+
+##### Which segment we are referring to?
+
+The segment has two parts
+
+1. segment
+   - Used for type check, code segment, heap segment etc.
+2. Offset
+   - Used for base register to find the physical memory
+
+How do we know which segment are we using?
+
+1. Explicitly: Using segment 
+2. Implicitly: Using special format
 
 
 
 
 
+## Concurrency
 
+### 26. Concurrency: Introduction
 
+##### Thread
 
+**Thread**: A separate process, but share same address space and fetch same data with the process.  Each thread has a program counter(PC), each thread has its own private set of registers, thus if two threads that are running a single process, when switch from T1 to T2, **context switch** is performed, and need one or more **thread control blocks** (similar with process control blocks) to store the state of each thread of a process. In context switch, the **address space remains the same** . A Mutli-thread process have **multi-stack** sometimes called **thread-local** storage
 
+##### Why threads
 
+1. **Parallelism:** Image you an array and wants to increment value on it, if you have a **single-thread**, you just go through it and be done, But, if you have mutliple CPUs, you can spread the work into portions and speeding up the process.
 
+2. Avoid **blocking** program due to slow I/O: Enable **overlap** of I/O, CPU sheduler can switch to other threads to do something useful.
 
+You can use ***process*** instead of threads, but threads share an address space and thus make it easy to share data,  ***Processes*** are used for logically separate tasks while little sharing of data structure in memory is needed.
+
+##### Thread Creation
+
+A thread which created first will not be executed first, it determined by OS **sheduler** 
+
+##### Why thread makes computer hard to understand
+
+When you write a counter, to add 1 to the current variable, it will produce different results.
+
+![Concurrency-problem](/Users/kuny/Downloads/notes/cuts/OS/concurrency263.png)
+
+##### Uncontroller Sheduling
+
+A and B fetching same data, which will produce **race condition**, thus the result is not **deterministic**. What we want is **mutual exclusion** , guarantees that if one thread is executing within the critical section, the others will be prevented from doing so.
+
+##### Atomicity
+
+Definition: "All or nothing", the group of many actions into a single atomic action is called a **transaction** 
 
 
 
