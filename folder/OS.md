@@ -166,6 +166,55 @@ How do we know which segment are we using?
 1. Explicitly: Using segment 
 2. Implicitly: Using special format
 
+##### How Stack grows in physical address
+
+Because stack grows backward in memory(grow to lower address space), so we need hardware support to help us to know **which way** the segment grows (a bit, 1 for +, 0 for -)
+
+##### Support for sharing
+
+Why sharing?
+
+Because certain code segments are useful, it is efficient to **share** certain memory segments between address space.
+
+How to share?
+
+**Protections bits** , add few bits per segment, indicate whether the segment is **read-only** or something else.
+
+![](/Users/kuny/Downloads/notes/cuts/OS/segmentattion2.png)
+
+##### Fine-grained vs. Coarse-grained Segmentation
+
+Supporting many segments requires even further hardware support with a **segment table** 
+
+##### OS Support
+
+Some problems raised by segmentation.
+
+1. What shoud OS do on a context switch
+   - The OS has to set up registers before the process run
+2. OS interaction when segments grow
+   - If there are free space in heap, then `malloc()` will find free space for the object and return a pointer
+   - Otherwise, the heap itself may need to grow, then memory-allocated library need to grow the heap. The OS will provide more space, updating the segment size register to new size. If there are no free space in memory, the OS will reject the request
+3. Most import one*: **External fragmentation**: there are tons of little holes of free space, making it difficult to allocate new segment, or to grow existing one 
+
+How to solve OS problem
+
+By **compact** physical memory, use different algorithm only **minimize** external fragmentation, but cannot resolve this problem
+
+##### 
+
+### 17. Free Space Management
+
+##### Why introduce this concept
+
+After segmentation,  there are little chops of free memory. E.g, request for 15bytes, but **no chop** of memory satisfy the requirement. So, how to manage free space.
+
+##### Assumption
+
+Once memory is handed out to a client by `malloc(int size)` , it must `free()`, otherwise, no **compaction** of free space is possible, which is useful to combat fragmentation
+
+
+
 
 
 

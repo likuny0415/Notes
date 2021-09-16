@@ -937,6 +937,116 @@ class Solution {
 
 
 
+203 remove linked list 
+
+```java
+class Solution {
+    public ListNode removeElements(ListNode head, int val) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode temp = dummy;
+        while (temp != null && temp.next != null) {
+            if (temp.next.val == val) {
+                temp.next = temp.next.next;
+            } else {
+                temp = temp.next;
+            }
+        }
+        return dummy.next;
+    }
+}
+
+// if next.val = val, remvoe
+// else temp = temp.next
+```
+
+
+
+83 remove duplicates from sorted array
+
+```java
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+
+        ListNode temp = head;
+        while (temp != null && temp.next != null) {
+            if (temp.next.val == temp.val) {
+                temp.next = temp.next.next;
+            } else {
+                temp = temp.next;
+            }
+        }
+        return head;
+    }
+}
+```
+
+
+
+## DFS
+
+111 minimum depth of binary tree
+
+```java
+class Solution {
+    public int minDepth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        } else if (root.right == null && root.left == null) {
+            return 1;
+        } 
+
+        if (root.left == null) return minDepth(root.right) + 1;
+        if (root.right == null) return minDepth(root.left) + 1;
+        return Math.min(minDepth(root.left), minDepth(root.right)) + 1;
+    }
+}
+```
+
+
+
+112 path sum
+
+```java
+class Solution {
+    public boolean hasPathSum(TreeNode root, int targetSum) {
+        if (root == null) {
+            return false;
+        }
+        if (root.right == null && root.left == null && root.val == targetSum) {
+            return true;
+        }
+        return hasPathSum(root.left, targetSum - root.val) || hasPathSum(root.right, targetSum - root.val);
+    }
+}
+```
+
+
+
+543 diameter of binary tree
+
+```java
+class Solution {
+    int max = 0;
+    public int diameterOfBinaryTree(TreeNode root) {
+        dfs(root);
+        return max;
+    }
+    int dfs(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        int left = dfs(root.left);
+        int right = dfs(root.right);
+        max = Math.max(left + right, max);
+        return Math.max(left, right) + 1;
+    }
+}
+
+// 注意不是经过根节点的最长路径
+// 是这棵树中最长路径
+// 所以需要一个max来保存right + left的最大值
+```
+
 
 
 # Note
