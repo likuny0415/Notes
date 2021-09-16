@@ -1049,6 +1049,58 @@ class Solution {
 
 
 
+235 lowestCommonAncestor
+
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+      // 先绑定
+        TreeNode ans = root;
+        while(true) {
+          // 如果root.val < q && p
+          // root = root.right
+            if (ans.val < p.val && ans.val < q.val) {
+                ans = ans.right;
+          // 如果root.val > q && p
+          // root = root.left
+            } else if (ans.val > p.val && ans.val > q.val) {
+                ans = ans.left;
+            // 其他情况说明其中一个大了或者小了，直接return
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+
+
+572 Subtree of Another Tree
+
+```java
+class Solution {
+    public boolean isSubtree(TreeNode root, TreeNode subRoot) {
+        if (root == null) return false;
+	
+      // 首先判断root==subroot, 然后判断root.left == subroot, root.right == subroot
+        return isSameTree(root, subRoot) || isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot);
+    }
+
+    boolean isSameTree(TreeNode left, TreeNode right) {
+        if (left == null && right == null) return true;
+        if (left == null || right == null) return false;
+        if (left.val != right.val) return false;
+        return isSameTree(left.left, right.left) && isSameTree(left.right, right.right);
+    }
+}
+```
+
+
+
+
+
 # Note
 
 Recursion / Backtracking 
