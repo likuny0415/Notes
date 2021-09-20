@@ -721,6 +721,176 @@ class Solution {
 
 
 
+1 two sum
+
+```java
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            if (map.containsKey(target - nums[i])) {
+              // 反插入
+                return new int[]{i, map.get(target - nums[i])};
+            }
+            map.put(nums[i], i);
+        }
+        return new int[]{-1,-1};
+    } 
+}
+
+// time complexity = O(N)
+// space complexity = O(1) -> 可以优化，for loop 然后不保存值
+```
+
+```java
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = i+1; j < nums.length; j++) {
+                if (nums[i] + nums[j] == target) {
+                    return new int[]{i, j};
+                }
+            }
+        }
+        return new int[]{0,0};
+    }
+}
+// 愚蠢版本
+```
+
+
+
+
+
+### Fast Slow Pointer
+
+844  backspace string compare 
+
+Easy
+
+```java
+class Solution {
+    public boolean backspaceCompare(String S, String T) {
+        int i = S.length() - 1, j = T.length() - 1;
+        int skipS = 0, skipT = 0;
+
+        while (i >= 0 || j >= 0) {
+            while (i >= 0) {
+                if (S.charAt(i) == '#') {
+                    skipS++;
+                    i--;
+                } else if (skipS > 0) {
+                    skipS--;
+                    i--;
+                } else {
+                    break;
+                }
+            }
+            while (j >= 0) {
+                if (T.charAt(j) == '#') {
+                    skipT++;
+                    j--;
+                } else if (skipT > 0) {
+                    skipT--;
+                    j--;
+                } else {
+                    break;
+                }
+            }
+            if (i >= 0 && j >= 0) {
+                if (S.charAt(i) != T.charAt(j)) {
+                    return false;
+                }
+            } else {
+                if (i >= 0 || j >= 0) {
+                    return false;
+                }
+            }
+            i--;
+            j--;
+        }
+        return true;
+    }
+}
+
+// two pointer
+// time complexity: O(N + M) 遍历两个字符串
+// space complexity: O(1) -> 定义常量的指针和计数器
+```
+
+
+
+142 Linkedlist cycle II 
+
+Medium
+
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        if (head == null) return null;
+
+        ListNode fast = head, slow = head;
+        while (true) {
+            if (fast == null || fast.next == null) return null;
+            fast = fast.next.next;
+            slow = slow.next;
+            // when they equal
+            if (fast == slow) {
+                break;
+            }
+        }
+
+        fast = head;
+        while (fast != slow) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        return slow;
+    }
+}
+
+// why we can't use while (fast != slow) at first place, because it doesn't make sure they meet one step further in the cycle, but somewhere else
+// time complexity: O(N)
+// space complexity: O(1)
+```
+
+
+
+2 add two numbers
+
+```java
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode res = new ListNode(-1);
+        ListNode temp = res;
+        int left = 0, sum, n1, n2;
+        while (l1 != null || l2 != null) {
+            n1 = l1 == null ? 0 : l1.val;
+            n2 = l2 == null ? 0 : l2.val;
+
+            sum = n1 + n2 + left;
+            temp.next = new ListNode(sum % 10);
+            left = sum / 10;
+            l1 = l1 == null ? null : l1.next;
+            l2 = l2 == null ? null : l2.next;
+            temp = temp.next;
+        }
+        if (left != 0) {
+            temp.next = new ListNode(left);
+        }
+        return res.next;
+    }
+}
+// time: O(MAX(M + N))
+// space: O(1)
+
+// 进位操作， left和两个指针的进位都需要注意
+```
+
+
+
+
+
 ## Graph Traversal
 
 94 Binary tree inorder traversal 中序
@@ -1099,9 +1269,440 @@ class Solution {
 
 
 
+617 merge two binary trees
+
+```java
+class Solution {
+    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {
+        if (root1 == null) {
+            return root2;
+        }
+        if (root2 == null) {
+            return root1;
+        }
+        TreeNode ans = new TreeNode(root1.val + root2.val);
+        ans.left = mergeTrees(root1.left, root2.left);
+        ans.right = mergeTrees(root1.right, root2.right);
+        return ans
+    }
+}
+```
+
+
+
+226 invert a binary tree
+
+```java
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return root;
+
+        TreeNode left = invertTree(root.left);
+        TreeNode right = invertTree(root.right);
+      // 将左边绑定到右边
+        root.left = right;
+      // 将右边绑定到左边
+        root.right = left;
+
+        return root;
+    }
+}
+```
+
+
+
+690 employee importance
+
+easy
+
+```java
+class Solution {
+    Map<Integer, Employee> map = new HashMap<>();
+    public int getImportance(List<Employee> employees, int id) {
+        for (Employee e: employees) {
+            map.put(e.id, e);
+        }
+        return dfs(id);
+    }
+    
+    int dfs(int id) {
+        Employee e = map.get(id);
+        int sum = e.importance;
+        List<Integer> subs = e.subordinates;
+        for (Integer subId : subs) {
+            sum += dfs(subId);
+        }
+        return sum;
+    }
+}
+
+// hashmap + dfs
+// hashmap(id, employee)
+// 1. current employee
+// 2. get Importance & subordinates
+// 3. sum -> dfs(id) & dfs(subs.id)
+// 4. sum
+// time: O(N)
+// space: O(N)
+```
+
+
+
+200 number of islands
+
+Medium
+
+```java
+class Solution {
+    public int numIslands(char[][] grid) {
+        int count = 0;
+        int n = grid.length, m = grid[0].length;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (grid[i][j] == '1') {
+                    dfs(grid,i,j);
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    void dfs(char[][] grid,int i,int j) {
+        if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] == '0') {
+            return;
+        }
+        grid[i][j] = '0';
+        dfs(grid,i-1,j);
+        dfs(grid,i+1,j);
+        dfs(grid,i,j-1);
+        dfs(grid,i,j+1);
+    }
+}
+// 1.找到 1 也就是岛 count++
+// 2. 将岛的部分全部换成1也就是不是岛的部分
+
+// time: O(MN)
+// space: O(MN)
+```
+
+
+
+order list
+
+Medium
+
+```java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        if (head == null || head.next == null) return head;
+
+        ListNode middleNode = findMiddleNode(head);
+        ListNode rightSide = middleNode.next;
+        middleNode.next = null;
+
+        ListNode left = sortList(head);
+        ListNode right = sortList(rightSide);
+        return mergeTwoList(left, right);
+    }
+
+    ListNode findMiddleNode(ListNode head) {
+        if (head == null || head.next == null) return head;
+
+        ListNode fast = head.next.next;
+        ListNode slow = head;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        return slow;
+    }
+
+    ListNode mergeTwoList(ListNode left, ListNode right) {
+        ListNode dummy = new ListNode(-1);
+        ListNode temp = dummy;
+        while (left != null && right != null) {
+            if (left.val < right.val) {
+                temp.next = left;
+                left = left.next;
+            } else {
+                temp.next = right;
+                right = right.next;
+            }
+            temp = temp.next;
+        }
+        temp.next = left == null ? right : left;
+        return dummy.next;
+    }
+}
+
+// fast 一定要多一步 fast = head.next, slow = head
+// otherwise -> generate stackoverflow error
+
+// time: nlog(N)
+// space: log(N)
+```
+
+
+
+98 validate binary tree
+
+medium
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return dfs(root, null, null);
+    }
+
+    boolean dfs(TreeNode root, Integer lower, Integer upper) {
+        if (root == null) {
+            return true;
+        }
+
+        int val = root.val;
+        if (lower != null && lower >= val) return false;
+        if (upper != null && upper <= val) return false;
+
+        if (!dfs(root.left, lower, val)) return false;
+        if (!dfs(root.right, val, upper)) return false;
+        return true;
+    }
+}
+
+// java 语法知识
+// 只有integer默认null, int 默认0
+// Integer -> object, int -> primary type
+
+// 首先binary tree的规则是所有左边 < 右边， 所以有一个lower upper bound很重要
+// 其次就是dfs-> false -> false
+// 然后就是lower 和 upper都是被val更新的
+// root.left -> upper被限制，lower没有被限制
+// root.right -> lower被限制，upper没有限制
+```
+
+
+
+417 pacific altantic water flow
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+
+    public List<List<Integer>> pacificAtlantic(int[][] heights) {
+        int m = heights.length;
+        int n = heights[0].length;
+        if (heights == null || m == 0 || n == 0) {
+            return res;
+        }
+
+        boolean[][] canReachP = new boolean[m][n];
+        boolean[][] canReachA = new boolean[m][n];
+
+        for (int i = 0; i < n; i++) {
+            // y fixed, x change
+            dfs(0, i, 0, heights, canReachP); // top
+            dfs(m-1, i, 0, heights, canReachA); // bottom
+        }
+
+        for (int j = 0; j < m; j++) {
+            // x fixed, y change
+            dfs(j, 0, 0, heights, canReachP); // left
+            dfs(j, n-1, 0, heights, canReachA); // right
+        }
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (canReachP[i][j] == true && canReachA[i][j] == true) {
+                    List<Integer> validLand = new ArrayList<>();
+                    validLand.add(i);
+                    validLand.add(j);
+                    res.add(validLand);
+                }
+            }
+        }
+        return res;
+    }
+
+
+    void dfs(int x, int y, int h, int[][] heights, boolean[][] visited) {
+        if (x < 0 || y < 0 || x >= heights.length || y >= heights[0].length) return;
+        if (visited[x][y] || heights[x][y] < h) return;
+        visited[x][y] = true;
+        dfs(x-1, y, heights[x][y], heights, visited);
+        dfs(x+1, y, heights[x][y], heights, visited);
+        dfs(x, y-1, heights[x][y], heights, visited);
+        dfs(x, y+1, heights[x][y], heights, visited);
+    }
+}
+
+// 1. dfs边界条件要设置清楚
+		
+    // n = heights.length, m = heights[0].length;
+    // n = 宽， m = 长       
+		// i < m, j < n;
+// 2. top -> y不变，x改变 -> dfs(i, 0)
+//    bottom -> y不变，x改变 -> dfs(i, n - 1)
+// 3. left -> x不变，y改变 -> dfs(0, j);
+//		right -> x不变，y改变 -> dfs(m -1, j);
+```
+
+
+
+
+
+
+
+
+
+## LinkedList
+
+19 remove Nth node from end of list
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode temp = dummy;
+        int size = 0;
+        while (temp.next != null) {
+            temp = temp.next;
+            size++;
+        }
+        int pos = size - n;
+        temp = dummy;
+        while (pos > 0) {
+            temp = temp.next;
+            pos--;
+        }
+        temp.next = temp.next.next;
+        return dummy.next;
+    }
+}
+
+// 得出length
+// 得出修改position
+// 到当前需要修改的pos前面一位
+// 然后next = next.next
+// time: O(N)
+// space: O(1)
+```
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode fast = head, slow = dummy;
+        for (int i = 0; i < n; i++) {
+            fast = fast.next;
+        }
+        while (fast != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        slow.next = slow.next.next;
+        return dummy.next;
+    }
+}
+// 双指针
+// 这种题目必须要dummy，防止第一个就是需要修改的node，dummy.next可以直接修改，但是head不能直接修改头指针
+// 1. 先让fast 跑到n
+// 2. fast, slow 开始跑，直到fast = null, stop
+// 3. slow.next = 等于n的位置，修改
+// good
+```
+
+
+
+```java
+class Solution {
+    public ListNode reverseBetween(ListNode head, int left, int right) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode pre = dummy;
+
+        // find left side - 1
+        for (int i = 0; i < left - 1; i++) {
+            pre = pre.next;
+        }
+        
+        // find right side - 1
+        ListNode rightSide = pre;
+        for (int i = 0; i < right - left + 1; i++) {
+            rightSide = rightSide.next;
+        }
+        
+        ListNode leftSide = pre.next;
+        ListNode rightSideTemp = rightSide.next;
+
+        pre.next = null;
+        rightSide.next = null;
+        
+        reverse(leftSide); 
+
+        // 反转之后， rightSide, leftSide 位置调换
+        // rightSide 此时是头指针，leftSide 是尾指针
+        pre.next = rightSide;
+        leftSide.next = rightSideTemp;
+        
+        return dummy.next;
+    }
+
+    void reverse(ListNode head) {
+        ListNode newHead = null;
+        ListNode cur = head;
+        while (cur != null) {
+            ListNode temp = cur.next;
+            cur.next = newHead;
+            newHead = cur;
+            cur = temp;
+        }
+    }
+}
+
+// 头尾列表reverse之后， 指针的顺序也会调换
+// O(N)
+// O(1)
+```
+
+
+
+```java
+class Solution {
+    public ListNode rotateRight(ListNode head, int k) {
+        if (head == null || head.next == null || k == 0) return head;
+
+        int n = 1;
+        ListNode temp = head;
+        while (temp.next != null) {
+            temp = temp.next;
+            n++;
+        }
+
+        k = n - k % n;
+        temp.next = head;
+        while (k > 0) {
+            k--;
+            temp = temp.next;
+        }
+        ListNode res = temp.next;
+        temp.next = null;
+        return res;
+    }
+}
+// 先形成环， 然后根据次序断开
+// O(N)
+// O(1)
+```
+
+
+
 
 
 # Note
+
+## Bianbian
+
+
 
 Recursion / Backtracking 
 
@@ -1222,3 +1823,33 @@ Time Space Complexity
 a. 一般面试的时候 你说完算法 就要说 这个算法的 time / space complexity是什么
 
  b. 每次你做完一道题 给自己养成一个习惯 就是想一下他的时间空间复杂度是多少
+
+
+
+## YM
+
+315 Count of Smaller Numbers After Self / Algorithm swap
+493 reverse pairs
+829 consecutive numbers sum
+994 rotting orange
+
+1043. Partition Array for Maximum Sum
+1335 Minimum Difficulty of a Job Schedule
+
+
+
+21: Merge two sorted Lists ✅
+200: Number of Islands ✅
+547: number of province
+692: top K frequent word
+937: reorder data in log files
+973: K closest point
+1010: Pairs of Songs With Total Durations Divisible by 60 / Amazon Music
+1041: robot bounded in circle
+1099: Two Sum Less Than K
+1135: Connecting Cities With Minimum Cost (MST)
+1167: Minimum Cost to Connect Sticks
+1197: Minimum Knight Moves / Demolition Robot
+1465: Maximum Area of a Piece of Cake After Horizontal and Vertical Cuts / Storage Optimize
+1629: Slowest key
+1710:Maximum Units on a Truck
