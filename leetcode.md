@@ -98,9 +98,9 @@ class Solution {
 
 
 
-54
+54 spiral matrix
 
-Array
+medium
 
 ```java
 class Solution {
@@ -239,6 +239,50 @@ class Solution {
 
 // set来计算
 ```
+
+
+
+56 merge intervals
+
+Medium
+
+```java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        List<int[]> res = new ArrayList<>();
+        int length = intervals.length;
+        if (intervals == null || length == 0) return res.toArray(new int[0][]);
+
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+
+        int i = 0;
+        while (i < length) {
+            int left = intervals[i][0];
+            int right = intervals[i][1];
+
+            while (i < length - 1 && intervals[i + 1][0] <= right) {
+                right = Math.max(right, intervals[i + 1][1]);
+                i++;
+            }
+            res.add(new int[]{left, right});
+            i++;
+        }
+        
+        return res.toArray(new int[0][]);
+    }
+}
+
+// 1. sort intervals
+// 2. 遍历: 因为left按照顺序,right没有按照顺序,如果下一个left<当前left， merge操作
+// 3. merge: while loop 更新right，直到intervals的left> i-1 right
+// 4. 添加
+// 5. list -> int[][], res.toArray(new int[0][])
+
+// nlog(n)
+// log(n)
+```
+
+
 
 
 
@@ -689,6 +733,61 @@ class Solution {
 
 ## Two pointers
 
+15 3 sum
+
+Medium
+
+```java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length == 0) {
+            return res;
+        }
+
+        int n = nums.length;
+
+        Arrays.sort(nums);
+        if (nums[0] > 0) {
+            return res;
+        }
+
+        for (int i = 0; i < nums.length; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                continue;
+            }
+
+            int left = i + 1;
+            int right = n - 1;
+            int sum = 0;
+            while (left < right) {
+                sum = nums[left] + nums[i] + nums[right];
+                if (sum == 0) {
+                    res.add(Arrays.asList(nums[left], nums[i], nums[right]));
+                    while (left < right && nums[left] == nums[left+1]) {
+                        left++;
+                    }
+                    while (left < right && nums[right] == nums[right-1]) {
+                        right--;
+                    }
+                    left++;
+                    right--;
+                } else if (sum < 0) {
+                    left++;
+                } else {
+                    right--;
+                }
+            }
+        }
+         return res;
+    }
+}
+```
+
+
+
+
+
 125 valid Palindrome
 
 ```java
@@ -763,6 +862,44 @@ class Solution {
 
 
 ### Fast Slow Pointer
+
+986 intervals intersections
+
+```java
+class Solution {
+    public int[][] intervalIntersection(int[][] A, int[][] B) {    
+        List<int[]> ans = new ArrayList<>();
+        int i = 0, j = 0;
+
+        while (i < A.length && j < B.length) {
+            int low = Math.max(A[i][0], B[j][0]);
+            int high = Math.min(A[i][1], B[j][1]);
+            if (low <= high) {
+                ans.add(new int[]{low, high});
+            } 
+            if (A[i][1] < B[j][1]) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+        return ans.toArray(new int[0][]);
+    }
+}
+
+// 1. 找到firstList, secondList, left的最大值
+// 2. 找到firstList, secondList, right最小值
+// 3. 如果left <= right list.add
+// 4. i++ -> (first.right < second.right)
+// 5. j++ -> (first.right >= second.right)
+
+// O(M + N)
+// O(M + N)
+
+
+```
+
+
 
 844  backspace string compare 
 
@@ -1153,6 +1290,35 @@ class Solution {
 
 
 ## DFS
+
+236 lowest common ancestor of a binary tree
+
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+        if (left == null) {
+            return right;
+        } else if (right == null) {
+            return left;
+        } else {
+            return root;
+        }
+    }
+}
+// 1. if root == q || p return
+// 2. find left or right
+// 3. if left or right both exist, return root
+// 4. if left not exist return right
+// 5. verse vasa
+
+// O(n)
+// O(n)
+```
+
+
 
 111 minimum depth of binary tree
 
@@ -1551,11 +1717,105 @@ class Solution {
 
 
 
+## BFS
+
 
 
 
 
 ## LinkedList
+
+146 LRU cache ❌
+
+```java
+public class LRUCache {
+    class DLinkedNode {
+        int key;
+        int value;
+        DLinkedNode prev;
+        DLinkedNode next;
+        public DLinkedNode() {}
+        public DLinkedNode(int _key, int _value) {key = _key; value = _value;}
+    }
+
+    private Map<Integer, DLinkedNode> cache = new HashMap<Integer, DLinkedNode>();
+    private int size;
+    private int capacity;
+    private DLinkedNode head, tail;
+
+    public LRUCache(int capacity) {
+        this.size = 0;
+        this.capacity = capacity;
+        // 使用伪头部和伪尾部节点
+        head = new DLinkedNode();
+        tail = new DLinkedNode();
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        DLinkedNode node = cache.get(key);
+        if (node == null) {
+            return -1;
+        }
+        // 如果 key 存在，先通过哈希表定位，再移到头部
+        moveToHead(node);
+        return node.value;
+    }
+
+    public void put(int key, int value) {
+        DLinkedNode node = cache.get(key);
+        if (node == null) {
+            // 如果 key 不存在，创建一个新的节点
+            DLinkedNode newNode = new DLinkedNode(key, value);
+            // 添加进哈希表
+            cache.put(key, newNode);
+            // 添加至双向链表的头部
+            addToHead(newNode);
+            ++size;
+            if (size > capacity) {
+                // 如果超出容量，删除双向链表的尾部节点
+                DLinkedNode tail = removeTail();
+                // 删除哈希表中对应的项
+                cache.remove(tail.key);
+                --size;
+            }
+        }
+        else {
+            // 如果 key 存在，先通过哈希表定位，再修改 value，并移到头部
+            node.value = value;
+            moveToHead(node);
+        }
+    }
+
+    private void addToHead(DLinkedNode node) {
+        node.prev = head;
+        node.next = head.next;
+        head.next.prev = node;
+        head.next = node;
+    }
+
+    private void removeNode(DLinkedNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+
+    private void moveToHead(DLinkedNode node) {
+        removeNode(node);
+        addToHead(node);
+    }
+
+    private DLinkedNode removeTail() {
+        DLinkedNode res = tail.prev;
+        removeNode(res);
+        return res;
+    }
+}
+```
+
+
+
+
 
 19 remove Nth node from end of list
 
@@ -1666,6 +1926,10 @@ class Solution {
 
 
 
+61 rotate list
+
+medium
+
 ```java
 class Solution {
     public ListNode rotateRight(ListNode head, int k) {
@@ -1695,6 +1959,334 @@ class Solution {
 ```
 
 
+
+24 swap nodes in pairs
+
+```java
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        if (head == null || head.next == null) return head;
+
+        ListNode dummy = new ListNode(-1 , head);
+        ListNode temp = dummy;
+        while (temp.next != null && temp.next.next != null) {
+            ListNode first = temp.next;
+            ListNode second = temp.next.next;
+            temp.next = second;  
+            first.next = second.next;
+            second.next = first;
+            temp = first;
+        }
+        return dummy.next;
+    }
+}
+// 看准顺序调换就行
+// O(N)
+// O(1)
+```
+
+
+
+328 odd even linked list
+
+```java
+class Solution {
+    public ListNode oddEvenList(ListNode head) {
+        if (head == null || head.next == null) return head;
+
+        ListNode evenHead = head.next;
+        ListNode odd = head, even = evenHead; 
+        while (even != null && even.next != null) {
+            odd.next = even.next;
+            odd = odd.next;
+            even.next = odd.next;
+            even = even.next;
+        }
+        odd.next = evenHead;
+        return head;
+    }
+}
+// odd -> change odd side
+// even -> change even side
+// evenHead -> hold even side
+// odd.next = evenHead -> link two sides
+// return 
+
+// O(N)
+// O(1)
+```
+
+
+
+## Binary Search
+
+33 search in rotated sorted array
+
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0, right = nums.length -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return mid;
+            } 
+
+            if (nums[right] > nums[mid]) {
+                if (target <= nums[right] && target > nums[mid]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            } else {
+                if (target >= nums[left] && target < nums[mid]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            }
+        }
+        return - 1;
+    }
+}
+
+// 1. left <= right 
+	// 因为[0, 1] target = 1, left = 0, right = 1, mid = 0, left = mid + 1 = 1
+	// left = right = 1, iteration stop
+// 2. upward
+	// nums[right] > nums[mid]
+	// target <= nums[right], target < nums[mid]
+	// 更新
+// 3. downward
+	// nums[right] <= nums[mid];
+	// target >= nums[left], target < nums[mid]
+	// 
+																									
+```
+
+
+
+
+
+378 find smallest element in a sorted matrix
+
+```java
+class Solution {
+    public int kthSmallest(int[][] matrix, int k) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+        int index = 0;
+        int[] array = new int[m * n];
+        for (int a = 0; a < m; a++) {
+            for (int b = 0; b < n; b++) {
+                array[index] = matrix[a][b];
+                index++;
+            }
+        }  
+        Arrays.sort(array);
+        return array[k-1];
+    }
+}
+
+// O(n2logN)
+// O(n2) need n2 to save the array
+```
+
+
+
+## Heap
+
+215 kth largest element in an array
+
+Medium
+
+```java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+    int len=nums.length;
+    PriorityQueue<Integer> queue=new PriorityQueue<>((a, b) -> a - b);
+    for(int i=0;i<len;i++){
+        if(queue.size()<k){
+            queue.offer(nums[i]);
+        }else{
+            if(queue.peek()>=nums[i]) continue;
+            else{
+                queue.poll();
+                queue.offer(nums[i]);
+            }
+        }
+    }
+    return queue.peek();
+    }
+}
+
+// 1. create一个最小堆, 堆的大小是k
+// 2. 如果pq.peek() > nums[i], 推入当前元素
+// 3. 因为是最小堆，所以顶端元素一定是kth里面最小的那个元素
+
+// O(N)
+// O(k)
+```
+
+
+
+
+
+
+
+378 k th smallest element in a sorted matrix
+
+Medium
+
+```java
+class Solution {
+    public int kthSmallest(int[][] matrix, int k) {
+        PriorityQueue<int[]> pq = new PriorityQueue<>((o1, o2) -> (o1[0] - o2[0]));
+     	// PriorityQueue<int[]> pq = new PriorityQueue<int[]>(new Comparator<int[]>() {
+      //      public int compare(int[] a, int[] b) {
+      //          return a[0] - b[0];
+      //      }
+      //  });
+
+        int n = matrix.length;
+        for (int i = 0; i < n; i++) {
+            pq.offer(new int[]{matrix[i][0],i, 0});
+        }
+
+        for (int i = 0; i < k - 1; i++) {
+            int[] cur = pq.poll();
+            if (cur[2] != n - 1) {
+                pq.offer(new int[]{matrix[cur[1]][cur[2] + 1], cur[1], cur[2] + 1});
+            }
+        }
+        return pq.poll()[0]; 
+    }
+}
+
+// Java 语法， A, 1, B, 2 小的在上面，ascending order 排序
+
+// 1. 创建Q， Q的排列顺序是按照list的一个数字的大小分类的，小的在上面
+// 2. offer所有row在Q里，然后添加入新的col+1在Q里，会自动分序
+// 3. 遍历到K-1
+// 4. poll出，得到matrix的value
+```
+
+
+
+373 find k pairs with smallest sums
+
+```java
+class Solution {
+    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        List<List<Integer>> pairs = new ArrayList<>();
+
+        if (nums1.length == 0 || nums2.length == 0 || k == 0) return pairs;
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0] + a[1] - b[1]);
+        
+        for (int i = 0; i < nums1.length && i < k; i++) {
+            pq.offer(new int[]{nums1[i], nums2[0], 0});
+        }
+
+        while (k-- > 0 && !pq.isEmpty()) {
+            int[] cur = pq.poll();
+            List<Integer> pair = new ArrayList<>();
+            pair.add(cur[0]);
+            pair.add(cur[1]);
+            pairs.add(pair);
+            if (cur[2] < nums2.length - 1) {
+                pq.offer(new int[]{cur[0], nums2[cur[2] + 1], cur[2] + 1});
+            }
+        }
+        return pairs;
+    }
+}
+
+// 1. create PriorityQueue
+// 2. put nums1[0], nums1[1]...nums1[n] with num2[0] into the pq (seed some random data)
+// 3. k-- ? , nums1[0], nums2[0], must in kth smallest pair
+// 		so, while put nums1[0], nums2[0] in pair, k = k -1, also put nums1[0] nums2[1] into 
+//		the pq, and next put nums1[1],nums2[1] into the deck...
+// 		until get k pairs that satisfy the requirement.
+
+// O(klog(k))
+// O(size of the priority queue)
+```
+
+
+
+
+
+## Sliding window
+
+3 longest substring without repeating characters
+
+medium
+
+```java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        Set<Character> set = new HashSet<>();
+        int n = s.length();
+
+        int rk = -1, ans = 0;
+        for (int i = 0; i < n; i++) {
+            if (i != 0) {
+                set.remove(s.charAt(i - 1));
+            }
+            while (rk + 1 < n && !set.contains(s.charAt(rk + 1))) {
+                set.add(s.charAt(rk+1));
+                rk++;
+            }
+            ans = Math.max(ans, rk - i + 1);
+        }
+        return ans;
+    }
+}
+
+// 1. 像一个窗口一样，不断的往前滑
+// 2. rk 相当于左侧窗口的左边，还没有开始滑动
+// 3. 不断滑动rk窗口，set添加当前char， 直到当前窗口 = string.length, 或者有重复元素
+// 4. 删除i位置的char，继续遍历rk右边的窗口
+// 5. 更新ans
+
+// O(n)
+// O(∣Σ∣)
+```
+
+
+
+
+
+## String
+
+415 add string 
+
+Easy
+
+```java
+class Solution {
+    public String addStrings(String num1, String num2) {
+        StringBuilder sb = new StringBuilder();
+        int n1 = num1.length() - 1, n2 = num2.length() - 1, carry = 0;
+        while (n1 >= 0 || n2 >= 0 || carry != 0) {
+            int a = n1 >= 0 ? num1.charAt(n1) - '0' : 0;
+            int b = n2 >= 0 ? num2.charAt(n2) - '0' : 0;
+            int sum = a + b + carry;
+            sb.append(sum % 10);
+            carry = sum / 10;
+            n1--;
+            n2--;
+        }
+        return sb.reverse().toString();
+    }
+}
+// 注意n1 >= 0, n2 >= 0, carry != 0
+// 所有的条件都要link 0，很重要
+
+// O(max(M + N))
+// O(1)
+```
 
 
 
