@@ -782,6 +782,47 @@ class Solution {
 
 ### Sliding window
 
+239
+
+```java
+public int[] maxSlidingWindow(int[] a, int k) {		
+		if (a == null || k <= 0) {
+			return new int[0];
+		}
+		int n = a.length;
+		int[] r = new int[n-k+1];
+		int ri = 0;
+		// store index
+		Deque<Integer> q = new ArrayDeque<>();
+		for (int i = 0; i < a.length; i++) {
+			// remove numbers out of range k
+			while (!q.isEmpty() && q.peek() < i - k + 1) {
+				q.poll();
+			}
+			// remove smaller numbers in k range as they are useless
+			while (!q.isEmpty() && a[q.peekLast()] < a[i]) {
+				q.pollLast();
+			}
+			// q contains index... r contains content
+			q.offer(i);
+			if (i >= k - 1) {
+				r[ri++] = a[q.peek()];
+			}
+		}
+		return r;
+	}
+
+
+// 相当于是保存一个deque用来判断当前数字的大小，只要是小了就去掉，否则的话就相当保留了当前位置的数字，然后不断的遍历来得到正确的树枝
+
+
+
+```
+
+
+
+
+
 424
 
 ```java
@@ -1194,9 +1235,9 @@ class Solution {
 
 
 
-133 clone graph
+133 clone graph 
 
-
+Times: 2
 
 ```java
 class Solution {
@@ -1865,6 +1906,8 @@ class Solution {
 
 Medium
 
+Times:3
+
 ```java
 class Solution {
     public int numIslands(char[][] grid) {
@@ -1997,6 +2040,8 @@ class Solution {
 
 
 417 pacific altantic water flow
+
+Times:2
 
 ```java
 class Solution {
@@ -2295,27 +2340,44 @@ class Solution {
 79 word searching
 
 ```java
-public class Solution {
-public boolean exist(char[][] board, String word) {
-    for(int i = 0; i < board.length; i++)
-        for(int j = 0; j < board[0].length; j++){
-            if(exist(board, i, j, word, 0))
-                return true;
+class Solution {
+    public boolean exist(char[][] board, String word) {
+        int n = board.length;
+        int m = board[0].length;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (exist(board, word, i, j, 0)) {
+                    return true;
+                }
+            }
         }
-    return false;
-}
-private boolean exist(char[][] board, int i, int j, String word, int ind){
-    if(ind == word.length()) return true;
-    if(i > board.length-1 || i <0 || j<0 || j >board[0].length-1 || board[i][j]!=word.charAt(ind))
         return false;
-    board[i][j]='*';
-    boolean result =    exist(board, i-1, j, word, ind+1) ||
-                        exist(board, i, j-1, word, ind+1) ||
-                        exist(board, i, j+1, word, ind+1) ||
-                        exist(board, i+1, j, word, ind+1);
-    board[i][j] = word.charAt(ind);
-    return result;
+    }
+
+    boolean exist(char[][] board, String word, int x, int y, int index) {
+        if (index == word.length()) {
+            return true;
+        }
+
+        if (x < 0 || y < 0 || x >= board.length || y >= board[0].length) return false;
+
+        if (word.charAt(index) != board[x][y]) return false;
+
+        char c = board[x][y];
+        board[x][y] = '0';
+        boolean res = exist(board, word, x + 1, y, index + 1) 
+        || exist(board, word, x - 1, y, index + 1) 
+        || exist(board, word, x, y + 1, index + 1) 
+        || exist(board, word, x, y - 1, index + 1);
+        board[x][y] = c;
+        return res;
+    } 
 }
+
+// 就是一个边界判断 没有什么特别奇特的地方
+
+// O(mn * 3 ^ L)
+// O(mn)
 ```
 
 
@@ -2357,8 +2419,9 @@ class Solution {
 }
 
 
-
-// backtracking 的题一定要画图
+// 其实主要做的一个事情就是切割，查看是否是palidrome, 然后继续backtrack
+// O(n * 2 ^ n)
+// O(n)
 ```
 
 
@@ -2789,19 +2852,24 @@ class Solution {
         dfs(nums, target, 0, 0);
         return count;
     }
-    
-    void dfs(int[] nums, int target, int output, int begin) {
-        if (begin == nums.length) {
+
+    void dfs(int[] nums, int target, int index, int output) {
+        if (index == nums.length) {
             if (target == output) {
-                count++;               
-            } 
+                count += 1;
+            }
             return;
         }
-        // 创建一个index指针来keep tracking
-        dfs(nums, target, output + nums[begin], begin + 1);
-        dfs(nums, target, output - nums[begin], begin + 1);
+
+        dfs(nums, target, index + 1, output + nums[index]);
+        dfs(nums, target, index + 1, output - nums[index]);
     }
 }
+
+// 只有前进，没有后退，所以index一直++就行，然后的话就是终止条件判断
+
+// O(2^n)
+// O(n)
 ```
 
 
@@ -2924,6 +2992,62 @@ class Solution {
 
 
 ## LinkedList
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode reverseBetween(ListNode head, int left, int right) {
+        ListNode dummy = new ListNode(-1, head);
+        ListNode preNd = dummy;
+
+        for (int i = 0; i < left - 1; i++) {
+            preNd = preNd.next; // 1 2 3 4 5
+        }
+
+        ListNode rightNd = preNd; 
+        for (int i = 0; i < right - left + 1; i++) {
+            rightNd = rightNd.next; // 4 5
+        }
+
+        ListNode leftNd = preNd.next; // 2 3 4 5 // rightNd.next = null = 2 3 4
+        ListNode tail = rightNd.next; // 5
+
+        preNd.next = null; // pre = 1, 
+        rightNd.next = null; 
+
+        reverse(leftNd);
+
+        preNd.next = rightNd; //
+        leftNd.next = tail;
+
+        return dummy.next;
+    }
+
+    void reverse(ListNode head) {
+        ListNode newHead = null;
+        ListNode cur = head;
+        while(cur!= null) {
+            ListNode temp = cur.next;
+            cur.next = newHead;
+            newHead = cur;
+            cur = temp;
+        }
+    }
+}
+```
+
+
+
+
 
 146 LRU cache ❌
 
@@ -3472,6 +3596,34 @@ class Solution {
 
 
 378 find smallest element in a sorted matrix
+
+```java
+// pq
+class Solution {
+    public int kthSmallest(int[][] matrix, int k) {
+        PriorityQueue<int[]> pq = new PriorityQueue<int[]>(new Comparator<int[]>() {
+            public int compare(int[] a, int[] b) {
+                return a[0] - b[0]; // 这是什么意思
+            }
+        });
+
+        int n = matrix.length;
+        for (int i = 0; i < n; i++) {
+            pq.offer(new int[]{matrix[i][0],i, 0});
+        }
+
+        for (int i = 0; i < k - 1; i++) {
+            int[] cur = pq.poll();
+            if (cur[2] != n - 1) {
+                pq.offer(new int[]{matrix[cur[1]][cur[2] + 1], cur[1], cur[2] + 1});
+            }
+        }
+        return pq.poll()[0]; 
+    }
+}
+```
+
+
 
 ```java
 class Solution {
